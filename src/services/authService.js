@@ -1,6 +1,9 @@
 // src/services/authService.js
 const API_URL = 'http://localhost:8080/api/usuarios';
 
+const TOKEN_KEY = 'chicaeme_token';
+const USUARIO_KEY = 'usuarioChicaeme'; // se mantiene el mismo nombre que ya usa el resto del proyecto
+
 export const loginUsuario = async (email, password) => {
     try {
         // Hacemos exactamente lo mismo que hiciste en Thunder Client: un POST con JSON
@@ -17,12 +20,34 @@ export const loginUsuario = async (email, password) => {
             throw new Error('Correo o contraseña incorrectos');
         }
 
-        // Si es 200 OK, convertimos la respuesta a JSON y la devolvemos
+        // IMPORTANTE: desde que se agregó JWT en el backend, /login ya NO devuelve
+        // el usuario directamente. Ahora devuelve { token, usuario }.
         const data = await response.json();
-        return data; 
-        
+
+        // Guardamos el token (lo necesita cada petición protegida) y el usuario
+        // por separado, usando la MISMA clave 'usuarioChicaeme' que ya usa el
+        // resto de la app para no tener que tocar cada página que lo lee.
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(USUARIO_KEY, JSON.stringify(data.usuario));
+
+        return data.usuario;
+
     } catch (error) {
         console.error("Error en el login:", error);
         throw error; // Rebotamos el error para mostrarlo en la interfaz
     }
+};
+
+export const logoutUsuario = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USUARIO_KEY);
+};
+
+export const getToken = () => localStorage.getItem(TOKEN_KEY);
+
+// Header listo para pegar en cualquier fetch protegido.
+// Si no hay token todavía, no agrega nada (así no rompe los endpoints públicos).
+export const authHeader = () => {
+    const token = getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
 };

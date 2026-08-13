@@ -1,3 +1,4 @@
+import { authFetch } from '../services/http';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -16,7 +17,7 @@ const GestionarProductos = () => {
 
   const cargarDatos = async () => {
     try {
-      const resPedido = await fetch(`http://localhost:8080/api/cotizaciones/${id}`);
+      const resPedido = await authFetch(`http://localhost:8080/api/cotizaciones/${id}`);
       const dataPedido = await resPedido.json();
       
       setPedido({
@@ -24,7 +25,7 @@ const GestionarProductos = () => {
         detalles: dataPedido.detalles || []
       });
 
-      const resArticulos = await fetch(`http://localhost:8080/api/articulos`);
+      const resArticulos = await authFetch(`http://localhost:8080/api/articulos`);
       if (resArticulos.ok) {
         const dataArticulos = await resArticulos.json();
         setArticulosInventario(dataArticulos);
@@ -108,7 +109,7 @@ const GestionarProductos = () => {
     };
 
     try {
-      const response = await fetch(`http://localhost:8080/api/cotizaciones/${id}`, {
+      const response = await authFetch(`http://localhost:8080/api/cotizaciones/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

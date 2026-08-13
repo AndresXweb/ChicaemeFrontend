@@ -1,3 +1,4 @@
+import { authFetch } from '../services/http';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { obtenerArticulos } from '../services/articulosService';
@@ -387,7 +388,7 @@ const LandingPage = () => {
     if (raw) {
       const user = JSON.parse(raw);
       setUsuario(user);
-      fetch(`http://localhost:8080/api/cotizaciones/usuario/${user.id}`)
+      authFetch(`http://localhost:8080/api/cotizaciones/usuario/${user.id}`)
         .then(r => r.ok ? r.json() : [])
         .then(d => setAprobados(d.filter(c => c.estado === 'Aprobado').length))
         .catch(() => {});

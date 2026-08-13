@@ -1,3 +1,4 @@
+import { authFetch } from '../services/http';
 import React, { useState, useEffect } from 'react';
 
 const API_URL = 'http://localhost:8080/api/usuarios';
@@ -155,7 +156,7 @@ const Usuarios = () => {
 
   const cargarUsuarios = async () => {
     try {
-      const res = await fetch(API_URL);
+      const res = await authFetch(API_URL);
       setUsuarios(await res.json());
     } catch (e) { console.error(e); }
   };
@@ -167,7 +168,7 @@ const Usuarios = () => {
     e.preventDefault();
     try {
       const url = modoEdicion ? `${API_URL}/${idEdicion}` : API_URL;
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: modoEdicion ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -194,7 +195,7 @@ const Usuarios = () => {
 
   const eliminarUsuario = async (id) => {
     if (!window.confirm('¿Eliminar este usuario?')) return;
-    await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+    await authFetch(`${API_URL}/${id}`, { method: 'DELETE' });
     cargarUsuarios();
   };
 

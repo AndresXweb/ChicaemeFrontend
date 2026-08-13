@@ -1,12 +1,13 @@
+import { authFetch } from './http';
 const API_URL = 'http://localhost:8080/api/servicios';
 
 export const obtenerServicios = async () => {
-    const response = await fetch(API_URL);
+    const response = await authFetch(API_URL);
     return await response.json();
 };
 
 export const crearServicio = async (servicio) => {
-    const response = await fetch(API_URL, {
+    const response = await authFetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(servicio)
@@ -15,7 +16,7 @@ export const crearServicio = async (servicio) => {
 };
 
 export const actualizarServicio = async (id, servicio) => {
-    const response = await fetch(`${API_URL}/${id}`, {
+    const response = await authFetch(`${API_URL}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(servicio)
@@ -24,7 +25,7 @@ export const actualizarServicio = async (id, servicio) => {
 };
 
 export const eliminarServicio = async (id) => {
-    return await fetch(`${API_URL}/${id}`, {
+    return await authFetch(`${API_URL}/${id}`, {
         method: 'DELETE'
     });
 };

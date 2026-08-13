@@ -1,3 +1,4 @@
+import { authFetch } from '../services/http';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { obtenerCotizaciones, crearCotizacion, actualizarCotizacion, eliminarCotizacion, cambiarEstadoCotizacion } from '../services/cotizacionesService';
@@ -151,7 +152,7 @@ const Cotizaciones = () => {
   const cargarDatos = async () => {
     try {
       setCotizaciones(await obtenerCotizaciones());
-      const res = await fetch(API_USUARIOS);
+      const res = await authFetch(API_USUARIOS);
       setUsuariosDb(await res.json());
     } catch (e) { console.error(e); }
   };

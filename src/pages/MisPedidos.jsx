@@ -1,3 +1,4 @@
+import { authFetch } from '../services/http';
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -229,7 +230,7 @@ const MisPedidos = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8080/api/cotizaciones/usuario/${usuarioId}`);
+      const response = await authFetch(`http://localhost:8080/api/cotizaciones/usuario/${usuarioId}`);
       if (!response.ok) throw new Error('Error al cargar pedidos');
       const data = await response.json();
       // Más reciente primero
@@ -264,7 +265,7 @@ const MisPedidos = () => {
     if (!pedidoACancelar) return;
     setCancelando(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/cotizaciones/${pedidoACancelar.id}`, {
+      const res = await authFetch(`http://localhost:8080/api/cotizaciones/${pedidoACancelar.id}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('No se pudo cancelar el pedido');

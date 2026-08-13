@@ -1,3 +1,4 @@
+import { authFetch } from '../services/http';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -78,7 +79,7 @@ const Contacto = () => {
 
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:8080/api/contactos', {
+      const res = await authFetch('http://localhost:8080/api/contactos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

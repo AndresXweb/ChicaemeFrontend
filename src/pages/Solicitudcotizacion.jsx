@@ -1,3 +1,4 @@
+import { authFetch } from '../services/http';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -273,7 +274,7 @@ const SolicitudCotizacion = () => {
 
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:8080/api/cotizaciones', {
+      const res = await authFetch('http://localhost:8080/api/cotizaciones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

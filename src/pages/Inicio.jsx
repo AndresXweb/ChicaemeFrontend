@@ -1,3 +1,4 @@
+import { authFetch } from '../services/http';
 import React, { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -109,7 +110,7 @@ const Inicio = () => {
 
   const cargarUsuarios = async () => {
     try {
-      const res  = await fetch(API_USUARIOS);
+      const res  = await authFetch(API_USUARIOS);
       const data = await res.json();
       setTotalUsuarios(data.length);
       // Últimos 5 más recientes

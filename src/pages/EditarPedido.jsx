@@ -1,3 +1,4 @@
+import { authFetch } from '../services/http';
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { obtenerInventarioParaCotizar } from '../services/inventarioService';
@@ -242,7 +243,7 @@ const EditarPedido = () => {
   const cargarPedido = () => {
     setLoading(true);
     setError(null);
-    fetch(`http://localhost:8080/api/cotizaciones/${id}`)
+    authFetch(`http://localhost:8080/api/cotizaciones/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('No se pudo cargar el pedido');
         return res.json();
@@ -400,7 +401,7 @@ const EditarPedido = () => {
         }),
       };
 
-      const response = await fetch(`http://localhost:8080/api/cotizaciones/${id}`, {
+      const response = await authFetch(`http://localhost:8080/api/cotizaciones/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

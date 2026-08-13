@@ -17,12 +17,10 @@ const Login = () => {
 
     try {
       // 1. Llamamos a tu backend a través del servicio
-      const userData = await loginUsuario(email, password);
-      
-      // 2. Si es exitoso, guardamos el "Carnet" del usuario en la memoria del navegador
-      localStorage.setItem('usuarioChicaeme', JSON.stringify(userData));
-      
-      // 3. Lo enviamos directo a la pantalla de servicios
+      // (authService ya guarda el token y el usuario en localStorage internamente)
+      await loginUsuario(email, password);
+
+      // 2. Lo enviamos directo a la pantalla de servicios
       navigate('/solicitar');
       
     } catch (err) {

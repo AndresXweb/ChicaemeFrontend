@@ -1,3 +1,4 @@
+import { authFetch } from '../services/http';
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
@@ -80,7 +81,7 @@ const Layout = () => {
   useEffect(() => {
     const fetchPendientes = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/cotizaciones');
+        const response = await authFetch('http://localhost:8080/api/cotizaciones');
         if (response.ok) {
           const data = await response.json();
           const count = data.filter(cotizacion => cotizacion.estado === 'Pendiente').length;
@@ -94,7 +95,7 @@ const Layout = () => {
     // NUEVO: cargar total de contactos recibidos
     const fetchContactos = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/contactos');
+        const response = await authFetch('http://localhost:8080/api/contactos');
         if (response.ok) {
           const data = await response.json();
           // El endpoint GET /api/contactos responde { success, total, contactos }

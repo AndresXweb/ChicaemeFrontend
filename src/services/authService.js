@@ -38,6 +38,37 @@ export const loginUsuario = async (email, password) => {
     }
 };
 
+// Pide el enlace de recuperación. El backend SIEMPRE responde con el mismo
+// texto (exista o no el correo), y en TEXTO PLANO, no JSON — por eso .text()
+// y no .json() (si no, truena igual que nos pasó con ContactosAdmin).
+export const solicitarRecuperacion = async (email) => {
+    const response = await fetch(`${API_URL}/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+    });
+    return await response.text();
+};
+
+// Restablece la contraseña con el token que llegó por correo.
+// También responde en texto plano, y aquí SÍ nos interesa si fue error o no
+// (token vencido/ inválido), por eso revisamos response.ok.
+export const restablecerPassword = async (token, password) => {
+    const response = await fetch(`${API_URL}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password })
+    });
+
+    const mensaje = await response.text();
+
+    if (!response.ok) {
+        throw new Error(mensaje || 'El enlace no es válido o ya expiró.');
+    }
+
+    return mensaje;
+};
+
 export const logoutUsuario = () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USUARIO_KEY);

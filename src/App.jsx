@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 // Importamos el Layout (para el admin) y las páginas de cliente
 import Layout from './components/Layout';
+import RutaProtegida from './components/RutaProtegida';
 import Inicio from './pages/Inicio';
 import Usuarios from './pages/Usuarios';
 import Cotizaciones from './pages/Cotizaciones';
@@ -19,9 +20,15 @@ import EditarPedido from './pages/EditarPedido';
 import Landinpage from './pages/Landinpage';
 import Perfil from './pages/Perfil'; 
 
-// NUEVO: Contactos (formulario público, archivo se llama Contactos.jsx) y ContactosAdmin (panel admin)
+// Contactos (formulario público) y ContactosAdmin (panel admin)
 import Contacto from './pages/Contactos';
 import ContactosAdmin from './pages/ContactosAdmin';
+
+// NUEVO: registro, términos y recuperación de contraseña
+import Registro from './pages/Registro';
+import Terminos from './pages/Terminos';
+import OlvidePassword from './pages/OlvidePassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
@@ -31,24 +38,25 @@ function App() {
         {/* 1. PORTAL PÚBLICO Y DE CLIENTES */}
         <Route path="/" element={<Landinpage />} /> 
         <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
+        <Route path="/terminos" element={<Terminos />} />
+        <Route path="/olvide-password" element={<OlvidePassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/solicitar" element={<SolicitudServicio />} />
         <Route path="/catalogo" element={<FormularioAlquiler />} />
         <Route path="/mis-pedidos" element={<MisPedidos />} />
         <Route path="/editar-pedido/:id" element={<EditarPedido />} />
         <Route path="/perfil" element={<Perfil />} />
-
-        {/* NUEVA RUTA - Contacto (pública, sin login requerido) */}
         <Route path="/contacto" element={<Contacto />} />
 
-        {/* 3. RUTA ADMINISTRATIVA (Dashboard) */}
-        <Route path="/admin" element={<Layout />}>
+        {/* 2. RUTA ADMINISTRATIVA (Dashboard) — protegida: exige login + rol admin */}
+        <Route path="/admin" element={<RutaProtegida soloAdmin><Layout /></RutaProtegida>}>
           <Route index element={<Inicio />} />
           <Route path="usuarios" element={<Usuarios />} />
           <Route path="cotizaciones" element={<Cotizaciones />} />
           <Route path="servicios" element={<Servicios />} />
           <Route path="articulos" element={<ArticulosAlquiler />} />
           <Route path="pedido/:id/productos" element={<GestionarProductos />} />
-          {/* NUEVA RUTA - Contactos recibidos */}
           <Route path="contactos" element={<ContactosAdmin />} />
         </Route>
 

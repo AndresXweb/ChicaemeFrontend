@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { loginUsuario } from '../services/authService';
 
 const Login = () => {
@@ -18,10 +18,13 @@ const Login = () => {
     try {
       // 1. Llamamos a tu backend a través del servicio
       // (authService ya guarda el token y el usuario en localStorage internamente)
-      await loginUsuario(email, password);
+      const usuario = await loginUsuario(email, password);
 
-      // 2. Lo enviamos directo a la pantalla de servicios
-      navigate('/solicitar');
+      // 2. Si es admin lo mandamos al panel, si es cliente a solicitar servicio
+      const esAdmin = ['administrador', 'admin'].includes(
+        (usuario.tipoUsuario || '').trim().toLowerCase()
+      );
+      navigate(esAdmin ? '/admin' : '/solicitar');
       
     } catch (err) {
       // Si el backend dice "Correo o contraseña incorrectos", lo mostramos aquí
@@ -85,6 +88,15 @@ const Login = () => {
           >
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginTop: '4px' }}>
+            <Link to="/olvide-password" style={{ color: '#6366F1', textDecoration: 'none', fontWeight: '500' }}>
+              ¿Olvidaste tu contraseña?
+            </Link>
+            <Link to="/registro" style={{ color: '#6366F1', textDecoration: 'none', fontWeight: '500' }}>
+              Crear cuenta
+            </Link>
+          </div>
 
         </form>
       </div>

@@ -1,4 +1,5 @@
 import { authFetch } from '../services/http';
+import { solicitarRecuperacion } from '../services/authService';
 import React, { useState, useEffect } from 'react';
 
 const API_URL = 'http://localhost:8080/api/usuarios';
@@ -151,6 +152,8 @@ const Usuarios = () => {
   const [idEdicion, setIdEdicion] = useState(null);
   const [formData, setFormData] = useState(emptyForm);
   const [avatarModal, setAvatarModal] = useState(null); // { src, nombre }
+  const [enviandoReset, setEnviandoReset] = useState(false);
+  const [resetEnviado, setResetEnviado] = useState(false);
 
   useEffect(() => { cargarUsuarios(); }, []);
 
@@ -181,17 +184,34 @@ const Usuarios = () => {
   const prepararEdicion = (u) => {
     setModoEdicion(true);
     setIdEdicion(u.id);
+    setResetEnviado(false);
     setFormData({
       nombres: u.nombres, apellidos: u.apellidos,
       direccion: u.direccion, ciudad: u.ciudad,
       telefono: u.telefono, email: u.email,
-      password: u.password, tipoUsuario: u.tipoUsuario,
+      password: '', tipoUsuario: u.tipoUsuario,
       imagen: u.imagen || '',
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const cancelarEdicion = () => { setModoEdicion(false); setIdEdicion(null); setFormData(emptyForm); };
+  // El admin ya no escribe contraseñas ajenas a mano: dispara el mismo correo
+  // de recuperación que usa cualquier usuario que olvidó su contraseña.
+  const enviarResetPassword = async () => {
+    setEnviandoReset(true);
+    try {
+      await solicitarRecuperacion(formData.email);
+      setResetEnviado(true);
+    } catch (e) {
+      alert('No se pudo enviar el enlace. Intenta de nuevo.');
+    } finally {
+      setEnviandoReset(false);
+    }
+  };
+
+  const cancelarEdicion = () => {
+    setModoEdicion(false); setIdEdicion(null); setFormData(emptyForm); setResetEnviado(false);
+  };
 
   const eliminarUsuario = async (id) => {
     if (!window.confirm('¿Eliminar este usuario?')) return;
@@ -308,10 +328,32 @@ const Usuarios = () => {
                 <input type="email" name="email" value={formData.email} onChange={manejarCambio} required style={S.input} placeholder="correo@ejemplo.com" />
               </div>
 
-              <div style={S.fieldGroup}>
-                <label style={S.label}>Contraseña</label>
-                <input type="password" name="password" value={formData.password} onChange={manejarCambio} required style={S.input} placeholder="••••••••" />
-              </div>
+              {!modoEdicion && (
+                <div style={S.fieldGroup}>
+                  <label style={S.label}>Contraseña</label>
+                  <input type="password" name="password" value={formData.password} onChange={manejarCambio} required minLength={8} style={S.input} placeholder="Mínimo 8 caracteres" />
+                </div>
+              )}
+
+              {modoEdicion && (
+                <div style={S.fieldGroup}>
+                  <label style={S.label}>Contraseña</label>
+                  {resetEnviado ? (
+                    <div style={{ fontSize: '13px', color: '#15803d', padding: '9px 12px', background: '#f0fdf4', borderRadius: '8px' }}>
+                      ✓ Enlace enviado a {formData.email}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={enviarResetPassword}
+                      disabled={enviandoReset}
+                      style={{ ...S.btnCancel, textAlign: 'left', cursor: enviandoReset ? 'not-allowed' : 'pointer' }}
+                    >
+                      {enviandoReset ? 'Enviando...' : '✉️ Enviar enlace para restablecer contraseña'}
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div style={S.fieldGroup}>
                 <label style={S.label}>Foto de perfil (URL, opcional)</label>

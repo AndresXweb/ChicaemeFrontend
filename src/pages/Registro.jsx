@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { crearUsuario } from '../services/usuarioService';
+import { loginConGoogle } from '../services/authService';
 
 const labelStyle = { display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#334155' };
 const inputStyle = { width: '100%', padding: '11px', borderRadius: '8px', border: '1px solid #E2E8F0', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit' };
@@ -14,6 +15,52 @@ const Registro = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const botonGoogleRef = useRef(null);
+
+  const manejarRespuestaGoogle = async (respuestaGoogle) => {
+    setError('');
+    setLoading(true);
+    try {
+      // Si llegamos hasta acá es porque el botón solo se muestra con el
+      // checkbox ya marcado, así que mandamos aceptoTerminos=true.
+      const usuario = await loginConGoogle(respuestaGoogle.credential, true);
+      const esAdmin = ['administrador', 'admin'].includes(
+        (usuario.tipoUsuario || '').trim().toLowerCase()
+      );
+      // loginConGoogle ya deja la sesión guardada (token + usuario),
+      // así que va directo adentro, no de vuelta a /login.
+      navigate(esAdmin ? '/admin' : '/solicitar');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Solo inicializamos/dibujamos el botón de Google cuando el checkbox de
+  // términos está marcado — así nadie crea cuenta por Google sin aceptar,
+  // igual que exige el registro manual.
+  useEffect(() => {
+    if (!aceptoTerminos) return;
+
+    let intentos = 0;
+    const intervalo = setInterval(() => {
+      intentos++;
+      if (window.google?.accounts?.id && botonGoogleRef.current) {
+        clearInterval(intervalo);
+        window.google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          callback: manejarRespuestaGoogle,
+        });
+        window.google.accounts.id.renderButton(botonGoogleRef.current, {
+          theme: 'outline', size: 'large', width: 320, text: 'signup_with',
+        });
+      } else if (intentos > 20) {
+        clearInterval(intervalo);
+      }
+    }, 200);
+    return () => clearInterval(intervalo);
+  }, [aceptoTerminos]);
 
   const manejarCambio = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -113,6 +160,20 @@ const Registro = () => {
               la política de tratamiento de datos personales.
             </span>
           </label>
+
+          {aceptoTerminos ? (
+            <div ref={botonGoogleRef} style={{ display: 'flex', justifyContent: 'center' }} />
+          ) : (
+            <p style={{ fontSize: '12px', color: '#94A3B8', textAlign: 'center', margin: 0 }}>
+              Marca la casilla de arriba para poder registrarte con Google
+            </p>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+            <span style={{ fontSize: '12px', color: '#94A3B8' }}>o con tu correo</span>
+            <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+          </div>
 
           <button
             type="submit"

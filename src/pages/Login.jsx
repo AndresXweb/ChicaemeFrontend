@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { loginUsuario } from '../services/authService';
+import { loginUsuario, loginConGoogle } from '../services/authService';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +9,57 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
+  const botonGoogleRef = useRef(null);
+
+  // Misma regla de redirección que usa el login normal — la comparten los dos caminos.
+  const irSegunRol = (usuario) => {
+    const esAdmin = ['administrador', 'admin'].includes(
+      (usuario.tipoUsuario || '').trim().toLowerCase()
+    );
+    navigate(esAdmin ? '/admin' : '/solicitar');
+  };
+
+  // El botón de Google llama a esto con un credential (el idToken) cuando el
+  // usuario elige su cuenta. aceptoTerminos no se manda desde login (queda en
+  // false) porque esta pantalla es para quien YA tiene cuenta; si el correo es
+  // nuevo, el backend responde pidiendo ir a /registro a aceptar términos.
+  const manejarRespuestaGoogle = async (respuestaGoogle) => {
+    setError('');
+    setLoading(true);
+    try {
+      const usuario = await loginConGoogle(respuestaGoogle.credential);
+      irSegunRol(usuario);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Google Identity Services carga su script de forma asíncrona (ver index.html),
+  // así que puede no estar listo todavía cuando este componente se monta.
+  // Reintentamos cada 200ms durante ~4s en vez de asumir que ya está disponible.
+  useEffect(() => {
+    let intentos = 0;
+    const intervalo = setInterval(() => {
+      intentos++;
+      if (window.google?.accounts?.id) {
+        clearInterval(intervalo);
+        window.google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          callback: manejarRespuestaGoogle,
+        });
+        if (botonGoogleRef.current) {
+          window.google.accounts.id.renderButton(botonGoogleRef.current, {
+            theme: 'outline', size: 'large', width: 320, text: 'signin_with',
+          });
+        }
+      } else if (intentos > 20) {
+        clearInterval(intervalo); // el script no cargó — el botón simplemente no aparece
+      }
+    }, 200);
+    return () => clearInterval(intervalo);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Evita que la página se recargue
@@ -21,10 +72,7 @@ const Login = () => {
       const usuario = await loginUsuario(email, password);
 
       // 2. Si es admin lo mandamos al panel, si es cliente a solicitar servicio
-      const esAdmin = ['administrador', 'admin'].includes(
-        (usuario.tipoUsuario || '').trim().toLowerCase()
-      );
-      navigate(esAdmin ? '/admin' : '/solicitar');
+      irSegunRol(usuario);
       
     } catch (err) {
       // Si el backend dice "Correo o contraseña incorrectos", lo mostramos aquí
@@ -99,6 +147,16 @@ const Login = () => {
           </div>
 
         </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '24px 0' }}>
+          <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+          <span style={{ fontSize: '12px', color: '#94A3B8' }}>o</span>
+          <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+        </div>
+
+        {/* Google dibuja su propio botón acá adentro (renderButton) */}
+        <div ref={botonGoogleRef} style={{ display: 'flex', justifyContent: 'center' }} />
+
       </div>
     </div>
   );

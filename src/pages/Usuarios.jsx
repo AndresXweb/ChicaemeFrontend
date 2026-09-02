@@ -1,5 +1,6 @@
 import { authFetch } from '../services/http';
 import { solicitarRecuperacion } from '../services/authService';
+import SubidaImagen from '../components/SubidaImagen';
 import React, { useState, useEffect } from 'react';
 
 const API_URL = 'http://localhost:8080/api/usuarios';
@@ -356,8 +357,11 @@ const Usuarios = () => {
               )}
 
               <div style={S.fieldGroup}>
-                <label style={S.label}>Foto de perfil (URL, opcional)</label>
-                <input type="url" name="imagen" value={formData.imagen} onChange={manejarCambio} style={S.input} placeholder="https://..." />
+                <SubidaImagen
+                  label="Foto de perfil"
+                  value={formData.imagen}
+                  onChange={(url) => setFormData({ ...formData, imagen: url })}
+                />
               </div>
 
               <div style={S.fieldGroup}>

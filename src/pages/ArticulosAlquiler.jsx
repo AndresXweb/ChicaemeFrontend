@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { obtenerArticulos, crearArticulo, actualizarArticulo, eliminarArticulo } from '../services/articulosService';
+import SubidaImagen from '../components/SubidaImagen';
 
 // ─── Design tokens (same system as Cotizaciones & Usuarios) ───────────────────
 const S = {
@@ -271,21 +272,11 @@ const ArticulosAlquiler = () => {
               </div>
 
               <div style={S.fieldGroup}>
-                <label style={S.label}>URL de la imagen</label>
-                <input
-                  type="text" name="fotoUrl" value={formData.fotoUrl}
-                  onChange={manejarCambio}
-                  style={S.input} placeholder="https://i.imgur.com/..."
+                <SubidaImagen
+                  label="Foto del artículo"
+                  value={formData.fotoUrl}
+                  onChange={(url) => setFormData({ ...formData, fotoUrl: url })}
                 />
-                {/* Preview inline si hay URL */}
-                {formData.fotoUrl && (
-                  <img
-                    src={formData.fotoUrl}
-                    alt="preview"
-                    style={{ marginTop: '6px', width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '0.5px solid #e2e8f0' }}
-                    onError={e => { e.target.style.display = 'none'; }}
-                  />
-                )}
               </div>
 
               <div style={S.fieldGroup}>

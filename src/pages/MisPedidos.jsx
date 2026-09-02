@@ -327,7 +327,7 @@ const MisPedidos = () => {
       )}
 
       <div style={S.wrap}>
-        <button style={S.backBtn} onClick={() => navigate('/solicitar')}>← Volver al inicio</button>
+        <button style={S.backBtn} onClick={() => navigate('/')}>← Volver al inicio</button>
         <h1 style={S.pageTitle}>Mis solicitudes de alquiler</h1>
         <p style={S.pageSubtitle}>Consulta el estado de tus pedidos y coordina la entrega cuando sean aprobados.</p>
 
@@ -392,7 +392,7 @@ const MisPedidos = () => {
             {pedidos.length === 0 ? (
               <div style={S.centerState}>
                 <span>No tienes solicitudes realizadas aún.</span>
-                <button style={S.linkBtn} onClick={() => navigate('/solicitar')}>
+                <button style={S.linkBtn} onClick={() => navigate('/catalogo')}>
                   Explorar el catálogo →
                 </button>
               </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { actualizarUsuario } from '../services/usuarioService';
+import SubidaImagen from '../components/SubidaImagen';
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ const Perfil = () => {
         const usuarioActualizado = await response.json();
         localStorage.setItem('usuarioChicaeme', JSON.stringify(usuarioActualizado));
         alert("¡Tu perfil ha sido actualizado con éxito!");
-        navigate('/solicitar');
+        navigate('/');
       } else {
         alert("Error al guardar en el servidor.");
       }
@@ -68,7 +69,7 @@ const Perfil = () => {
   return (
     <div style={{ padding: '40px 20px', background: '#F1F5F9', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
       <button 
-        onClick={() => navigate('/solicitar')} 
+        onClick={() => navigate('/')} 
         style={{ maxWidth: '600px', margin: '0 auto 20px auto', display: 'block', background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: '15px', textAlign: 'left', width: '100%' }}
       >
         ← Volver al inicio
@@ -80,17 +81,12 @@ const Perfil = () => {
         <form onSubmit={guardarCambiosPerfil} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           
           {/* Campo para la foto */}
-          <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-            <label style={{...labelStyle, marginBottom: '12px'}}>Foto de Perfil</label>
-            <div style={{ marginBottom: '10px' }}>
-               <img 
-                 src={formData.imagen || 'https://ui-avatars.com/api/?name=Usuario&background=e2e8f0'} 
-                 alt="Perfil" 
-                 style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #E2E8F0' }}
-                 onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Error&background=e2e8f0'}
-               />
-            </div>
-            <input type="text" name="imagen" value={formData.imagen || ''} onChange={manejarCambio} placeholder="Pega aquí la URL de tu imagen" style={inputStyle} />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+            <SubidaImagen
+              label="Foto de Perfil"
+              value={formData.imagen}
+              onChange={(url) => setFormData({ ...formData, imagen: url })}
+            />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

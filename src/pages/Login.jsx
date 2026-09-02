@@ -16,7 +16,7 @@ const Login = () => {
     const esAdmin = ['administrador', 'admin'].includes(
       (usuario.tipoUsuario || '').trim().toLowerCase()
     );
-    navigate(esAdmin ? '/admin' : '/solicitar');
+    navigate(esAdmin ? '/admin' : '/');
   };
 
   // El botón de Google llama a esto con un credential (el idToken) cuando el

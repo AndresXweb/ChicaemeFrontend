@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { crearUsuario } from '../services/usuarioService';
 import { loginConGoogle } from '../services/authService';
+import SubidaImagen from '../components/SubidaImagen';
 
 const labelStyle = { display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#334155' };
 const inputStyle = { width: '100%', padding: '11px', borderRadius: '8px', border: '1px solid #E2E8F0', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit' };
@@ -9,7 +10,7 @@ const inputStyle = { width: '100%', padding: '11px', borderRadius: '8px', border
 const Registro = () => {
   const [formData, setFormData] = useState({
     nombres: '', apellidos: '', direccion: '', ciudad: '',
-    telefono: '', email: '', password: '',
+    telefono: '', email: '', password: '', imagen: '',
   });
   const [aceptoTerminos, setAceptoTerminos] = useState(false);
   const [error, setError] = useState('');
@@ -29,7 +30,7 @@ const Registro = () => {
       );
       // loginConGoogle ya deja la sesión guardada (token + usuario),
       // así que va directo adentro, no de vuelta a /login.
-      navigate(esAdmin ? '/admin' : '/solicitar');
+      navigate(esAdmin ? '/admin' : '/');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -142,6 +143,12 @@ const Registro = () => {
             <label style={labelStyle}>Correo electrónico</label>
             <input type="email" name="email" required value={formData.email} onChange={manejarCambio} style={inputStyle} placeholder="ejemplo@correo.com" />
           </div>
+
+          <SubidaImagen
+            label="Foto de perfil (opcional)"
+            value={formData.imagen}
+            onChange={(url) => setFormData({ ...formData, imagen: url })}
+          />
 
           <div>
             <label style={labelStyle}>Contraseña</label>

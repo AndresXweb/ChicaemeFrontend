@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { obtenerServicios, crearServicio, actualizarServicio, eliminarServicio } from '../services/serviciosService';
+import SubidaImagen from '../components/SubidaImagen';
 
 const inputStyle = {
   width: '100%',
@@ -131,11 +132,11 @@ const Servicios = () => {
               </div>
 
               <div>
-                <label style={labelStyle}>URL de la imagen (Opcional)</label>
-                <input type="url" name="imagen" value={formData.imagen} onChange={manejarCambio} 
-                  placeholder="Ej: https://misitio.com/foto.jpg"
-                  onFocus={() => setFocusedInput('imagen')} onBlur={() => setFocusedInput(null)}
-                  style={focused('imagen')} />
+                <SubidaImagen
+                  label="Foto del servicio"
+                  value={formData.imagen}
+                  onChange={(url) => setFormData({ ...formData, imagen: url })}
+                />
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>

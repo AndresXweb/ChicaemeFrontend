@@ -12,8 +12,8 @@ import ArticulosAlquiler from './pages/ArticulosAlquiler';
 import GestionarProductos from './pages/GestionarProductos';
 
 // Tus páginas de cliente
-import SolicitudServicio from './pages/SolicitudServicio'; 
 import FormularioAlquiler from './pages/FormularioAlquiler';
+import SolicitudCotizacion from './pages/Solicitudcotizacion';
 import Login from './pages/Login';
 import MisPedidos from './pages/MisPedidos';
 import EditarPedido from './pages/EditarPedido';
@@ -42,8 +42,8 @@ function App() {
         <Route path="/terminos" element={<Terminos />} />
         <Route path="/olvide-password" element={<OlvidePassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/solicitar" element={<SolicitudServicio />} />
         <Route path="/catalogo" element={<FormularioAlquiler />} />
+        <Route path="/confirmar-cotizacion" element={<SolicitudCotizacion />} />
         <Route path="/mis-pedidos" element={<MisPedidos />} />
         <Route path="/editar-pedido/:id" element={<EditarPedido />} />
         <Route path="/perfil" element={<Perfil />} />

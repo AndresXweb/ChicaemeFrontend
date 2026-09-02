@@ -486,7 +486,7 @@ const LandingPage = () => {
                     <p style={{ color: '#94A3B8', fontSize: '11px', margin: '2px 0 0' }}>{usuario.email}</p>
                   </div>
                   <div className="chi-dropdown-divider" />
-                  <button className="chi-dropdown-item" onClick={() => { navigate('/solicitar'); setDropdown(false); }}>
+                  <button className="chi-dropdown-item" onClick={() => { navigate('/mis-pedidos'); setDropdown(false); }}>
                     📋 Mis solicitudes {aprobados > 0 && <span style={{ marginLeft: 'auto', background: '#10B981', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '1px 7px', borderRadius: '20px' }}>{aprobados}</span>}
                   </button>
                   <button className="chi-dropdown-item" onClick={() => { navigate('/mis-pedidos'); setDropdown(false); }}>

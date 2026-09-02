@@ -446,8 +446,8 @@ const CatalogoPublico = () => {
       alert('Debes iniciar sesión para confirmar tu cotización');
       navigate('/login');
     } else {
-      // Está logueado - va a formulario de cotización
-      navigate('/solicitar');
+      // Está logueado - va a confirmar la cotización (arma y envía el carrito)
+      navigate('/confirmar-cotizacion');
     }
   };
 

@@ -1,5 +1,7 @@
 import { authFetch } from './http';
-const API_URL = 'http://localhost:8080/api/cotizaciones';
+import { API_BASE_URL } from '../config';
+
+const API_URL = `${API_BASE_URL}/api/cotizaciones`;
 
 // 1. OBTENER TODAS (GET)
 export const obtenerCotizaciones = async () => {

@@ -6,6 +6,14 @@ import { obtenerInventarioParaCotizar } from '../services/inventarioService';
 const COP = (n) =>
   Number(n).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
+// Normaliza cualquier valor crudo del input a un entero válido: mínimo 1, tope al stock.
+const normalizarCantidad = (valorCrudo, stock) => {
+  const limite = stock > 0 ? stock : 999;
+  const n = parseInt(valorCrudo, 10);
+  if (!n || n < 1) return 1;
+  return Math.min(n, limite);
+};
+
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const S = {
   page: {
@@ -72,7 +80,6 @@ const S = {
     color: '#64748b',
     margin: '0 0 20px',
   },
-  // ── Search bar ──
   searchWrap: {
     position: 'relative',
     maxWidth: '1200px',
@@ -133,7 +140,6 @@ const S = {
     margin: '0 auto',
     alignItems: 'start',
   },
-  // ── Catalog grid ──
   catalogGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
@@ -148,7 +154,6 @@ const S = {
     transition: 'box-shadow 0.2s, border-color 0.2s, transform 0.2s',
     display: 'flex',
     flexDirection: 'column',
-    cursor: 'pointer',
   }),
   itemImg: {
     width: '100%',
@@ -198,17 +203,44 @@ const S = {
     alignItems: 'center',
     marginTop: '4px',
   },
-  qtyInput: {
-    width: '56px',
-    padding: '7px 8px',
-    fontSize: '13px',
-    textAlign: 'center',
+  stepper: (size = 'md') => ({
+    display: 'flex',
+    alignItems: 'center',
     border: '0.5px solid #cbd5e1',
     borderRadius: '8px',
+    overflow: 'hidden',
+    background: '#fff',
+    height: size === 'sm' ? '26px' : '32px',
+    flexShrink: 0,
+  }),
+  stepperBtn: (disabled, size = 'md') => ({
+    width: size === 'sm' ? '22px' : '28px',
+    height: '100%',
+    border: 'none',
+    background: disabled ? '#f8fafc' : '#f1f5f9',
+    color: disabled ? '#cbd5e1' : '#334155',
+    fontSize: size === 'sm' ? '13px' : '15px',
+    fontWeight: '700',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontFamily: 'inherit',
+    lineHeight: 1,
+    padding: 0,
+  }),
+  stepperInput: (size = 'md') => ({
+    width: size === 'sm' ? '28px' : '36px',
+    height: '100%',
+    border: 'none',
+    borderLeft: '0.5px solid #e2e8f0',
+    borderRight: '0.5px solid #e2e8f0',
+    textAlign: 'center',
+    fontSize: size === 'sm' ? '12px' : '13px',
+    fontWeight: '600',
+    color: '#0f172a',
     outline: 'none',
     fontFamily: 'inherit',
-    color: '#0f172a',
-  },
+    padding: 0,
+    background: '#fff',
+  }),
   addBtn: (disabled) => ({
     flex: 1,
     padding: '8px 12px',
@@ -233,7 +265,6 @@ const S = {
     alignItems: 'center',
     gap: '8px',
   },
-  // ── Cart panel ──
   panel: {
     background: '#fff',
     border: '0.5px solid #e2e8f0',
@@ -282,14 +313,10 @@ const S = {
     color: '#0f172a',
     fontSize: '13px',
     flex: 1,
+    minWidth: 0,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap'
-  },
-  cartItemQty: {
-    color: '#6366f1',
-    fontWeight: '700',
-    fontSize: '13px'
   },
   cartItemPrice: {
     color: '#059669',
@@ -346,7 +373,6 @@ const S = {
     fontSize: '13px',
     padding: '12px 0',
   },
-  // ── Image modal ──
   modalOverlay: {
     position: 'fixed',
     inset: 0,
@@ -372,6 +398,59 @@ const S = {
   },
 };
 
+// Media queries y detalles que los estilos inline no pueden resolver solos
+// (quitar las flechitas nativas del input number, y apilar el layout en celular).
+const EstilosGlobales = () => (
+  <style>{`
+    input[type=number].chi-stepper-input::-webkit-inner-spin-button,
+    input[type=number].chi-stepper-input::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number].chi-stepper-input {
+      -moz-appearance: textfield;
+    }
+    @media (max-width: 860px) {
+      .chi-header { padding: 16px 20px !important; }
+      .chi-layout { grid-template-columns: 1fr !important; }
+      .chi-cart-panel { position: static !important; top: auto !important; }
+    }
+  `}</style>
+);
+
+// ─── Stepper reutilizable (catálogo y carrito) ────────────────────────────────
+const Stepper = ({ valor, onCambiar, onBlur, min = 1, max = 999, disabled, size = 'md' }) => (
+  <div style={S.stepper(size)}>
+    <button
+      type="button"
+      onClick={() => onCambiar(normalizarCantidad((parseInt(valor, 10) || min) - 1, max))}
+      disabled={disabled || (parseInt(valor, 10) || min) <= min}
+      style={S.stepperBtn(disabled || (parseInt(valor, 10) || min) <= min, size)}
+    >−</button>
+    <input
+      type="number"
+      className="chi-stepper-input"
+      value={valor}
+      disabled={disabled}
+      onChange={e => {
+        const v = e.target.value;
+        // Mientras se teclea dejamos pasar vacío o solo dígitos - esto es justo
+        // lo que antes rompía el campo (se forzaba a "1" en cada tecla y no
+        // dejaba borrar para escribir un número nuevo).
+        if (v === '' || /^\d+$/.test(v)) onCambiar(v);
+      }}
+      onBlur={() => onBlur(normalizarCantidad(valor, max))}
+      style={S.stepperInput(size)}
+    />
+    <button
+      type="button"
+      onClick={() => onCambiar(normalizarCantidad((parseInt(valor, 10) || min) + 1, max))}
+      disabled={disabled || (parseInt(valor, 10) || min) >= max}
+      style={S.stepperBtn(disabled || (parseInt(valor, 10) || min) >= max, size)}
+    >+</button>
+  </div>
+);
+
 // ─── Component ────────────────────────────────────────────────────────────────
 const CatalogoPublico = () => {
   const [inventario, setInventario] = useState([]);
@@ -386,7 +465,6 @@ const CatalogoPublico = () => {
     cargarCarrito();
   }, []);
 
-  // Guardar carrito en localStorage cada vez que cambié
   useEffect(() => {
     localStorage.setItem('carritoAlquiler', JSON.stringify(carrito));
   }, [carrito]);
@@ -422,31 +500,43 @@ const CatalogoPublico = () => {
     );
   });
 
+  // Durante el tecleo guardamos el valor crudo (string, puede venir vacío).
   const manejarCantidad = (id, val) =>
-    setCantidades({ ...cantidades, [id]: parseInt(val) || 1 });
+    setCantidades(prev => ({ ...prev, [id]: val }));
+
+  // Al salir del campo (blur) o al usar +/-, sí normalizamos: mínimo 1, tope al stock.
+  const confirmarCantidad = (id, valorNormalizado) =>
+    setCantidades(prev => ({ ...prev, [id]: valorNormalizado }));
 
   const agregarAlCarrito = (articulo) => {
-    const cant = cantidades[articulo.id] || 1;
+    const stock = Number(articulo.stockTotal ?? articulo.stockDisponible ?? 0);
+    const cant = normalizarCantidad(cantidades[articulo.id], stock);
     setCarrito(prev => {
       const existe = prev.find(i => i.id === articulo.id);
       return existe
-        ? prev.map(i => i.id === articulo.id ? { ...i, cantidad: i.cantidad + cant } : i)
+        ? prev.map(i => i.id === articulo.id ? { ...i, cantidad: Math.min(i.cantidad + cant, stock || 999) } : i)
         : [...prev, { ...articulo, cantidad: cant }];
     });
-    // Reset cantidad
-    setCantidades({ ...cantidades, [articulo.id]: 1 });
+    setCantidades(prev => ({ ...prev, [articulo.id]: 1 }));
   };
 
   const quitarDelCarrito = (id) => setCarrito(prev => prev.filter(i => i.id !== id));
 
+  // Ajusta la cantidad de un artículo que YA está en el carrito (stepper del panel).
+  const ajustarCantidadCarrito = (id, nuevaCantidad) => {
+    setCarrito(prev => prev.map(i => {
+      if (i.id !== id) return i;
+      const stock = Number(i.stockTotal ?? i.stockDisponible ?? 0);
+      return { ...i, cantidad: normalizarCantidad(nuevaCantidad, stock) };
+    }));
+  };
+
   const irAConfirmar = () => {
     const usuarioString = localStorage.getItem('usuarioChicaeme');
     if (!usuarioString) {
-      // No está logueado - redirige a login
       alert('Debes iniciar sesión para confirmar tu cotización');
       navigate('/login');
     } else {
-      // Está logueado - va a confirmar la cotización (arma y envía el carrito)
       navigate('/confirmar-cotizacion');
     }
   };
@@ -455,7 +545,8 @@ const CatalogoPublico = () => {
 
   return (
     <div style={S.page}>
-      {/* ── Modal imagen ── */}
+      <EstilosGlobales />
+
       {imagenModal && (
         <div style={S.modalOverlay} onClick={() => setImagenModal(null)}>
           <div style={S.modalBox} onClick={e => e.stopPropagation()}>
@@ -486,9 +577,8 @@ const CatalogoPublico = () => {
         </div>
       )}
 
-      {/* ── Header ── */}
-      <header style={S.header}>
-        <div style={S.logo}>AUTO<span style={{ color: '#0F172A' }}>MARKET</span></div>
+      <header style={S.header} className="chi-header">
+        <div style={S.logo}>CHICA<span style={{ color: '#0F172A' }}>EME</span></div>
         <nav style={S.nav}>
           <Link to="/" style={S.navLink}>Inicio</Link>
           <Link to="/catalogo" style={S.navLink}>Catálogo</Link>
@@ -499,12 +589,10 @@ const CatalogoPublico = () => {
         </nav>
       </header>
 
-      {/* ── Main Content ── */}
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <h1 style={S.pageTitle}>Catálogo de productos</h1>
         <p style={S.pageSubtitle}>Selecciona los artículos que necesitas. Cuando estés listo, confirma tu cotización.</p>
 
-        {/* ── Buscador ── */}
         <div style={S.searchWrap}>
           <span style={S.searchIcon}>🔍</span>
           <input
@@ -527,10 +615,8 @@ const CatalogoPublico = () => {
         )}
       </div>
 
-      {/* ── Main layout ── */}
-      <div style={S.layout}>
+      <div style={S.layout} className="chi-layout">
 
-        {/* ── Catálogo ── */}
         <div style={S.catalogGrid}>
           {inventario.length === 0 && (
             <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#94a3b8', padding: '48px 0', fontSize: '14px' }}>
@@ -550,11 +636,11 @@ const CatalogoPublico = () => {
             const stockCfg = S.stockBadge(stock);
             const agotado = stock === 0;
             const enPedido = enCarrito(item.id);
+            const cantidadActual = cantidades[item.id] ?? 1;
             const imgSrc = item.fotoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nombre)}&background=e2e8f0&color=94a3b8&size=200`;
 
             return (
               <div key={item.id} style={S.itemCard(!!enPedido)}>
-                {/* Imagen */}
                 <div style={{ position: 'relative', overflow: 'hidden' }}>
                   <img
                     src={imgSrc}
@@ -565,40 +651,25 @@ const CatalogoPublico = () => {
                     onMouseLeave={e => { e.target.style.transform = 'scale(1)'; }}
                     onError={e => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nombre)}&background=e2e8f0&color=64748b`; }}
                   />
-                  {/* Stock badge */}
                   <span style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    background: stockCfg.bg,
-                    color: stockCfg.color,
-                    fontSize: '10px',
-                    fontWeight: '700',
-                    padding: '3px 8px',
-                    borderRadius: '20px',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+                    position: 'absolute', top: '10px', right: '10px',
+                    background: stockCfg.bg, color: stockCfg.color,
+                    fontSize: '10px', fontWeight: '700', padding: '3px 8px',
+                    borderRadius: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
                   }}>
                     {stockCfg.label}
                   </span>
-                  {/* En carrito badge */}
                   {enPedido && (
                     <span style={{
-                      position: 'absolute',
-                      top: '10px',
-                      left: '10px',
-                      background: '#10b981',
-                      color: '#fff',
-                      fontSize: '10px',
-                      fontWeight: '700',
-                      padding: '3px 8px',
-                      borderRadius: '20px',
+                      position: 'absolute', top: '10px', left: '10px',
+                      background: '#10b981', color: '#fff',
+                      fontSize: '10px', fontWeight: '700', padding: '3px 8px', borderRadius: '20px',
                     }}>
-                      ✓ En carrito
+                      ✓ En carrito ×{enPedido.cantidad}
                     </span>
                   )}
                 </div>
 
-                {/* Info */}
                 <div style={S.itemBody}>
                   <p style={S.itemName}>{item.nombre}</p>
                   {item.descripcion && <p style={S.itemDesc}>{item.descripcion}</p>}
@@ -608,16 +679,13 @@ const CatalogoPublico = () => {
                     <span style={{ color: '#94a3b8', fontWeight: '400', fontSize: '13px' }}> / unidad</span>
                   </p>
 
-                  {/* Cantidad + agregar */}
                   <div style={S.qtyRow}>
-                    <input
-                      type="number"
-                      min="1"
+                    <Stepper
+                      valor={cantidadActual}
+                      onCambiar={(v) => manejarCantidad(item.id, v)}
+                      onBlur={(v) => confirmarCantidad(item.id, v)}
                       max={stock || 999}
-                      value={cantidades[item.id] || 1}
-                      onChange={e => manejarCantidad(item.id, e.target.value)}
                       disabled={agotado}
-                      style={{ ...S.qtyInput, background: agotado ? '#f8fafc' : '#fff' }}
                     />
                     <button
                       onClick={() => agregarAlCarrito(item)}
@@ -633,15 +701,13 @@ const CatalogoPublico = () => {
           })}
         </div>
 
-        {/* ── Carrito ── */}
-        <div style={S.panel}>
+        <div style={S.panel} className="chi-cart-panel">
           <div style={S.panelHeader}>
             <div style={S.panelDot} />
             <h3 style={S.panelTitle}>Tu carrito ({carrito.length})</h3>
           </div>
 
           <div style={S.panelBody}>
-            {/* Lista de artículos */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '350px', overflowY: 'auto' }}>
               {carrito.length === 0 ? (
                 <p style={S.emptyCart}>Aún no has agregado artículos</p>
@@ -654,7 +720,13 @@ const CatalogoPublico = () => {
                         {COP(item.precioAlquiler)} × {item.cantidad} = {COP(item.precioAlquiler * item.cantidad)}
                       </p>
                     </div>
-                    <span style={S.cartItemQty}>×{item.cantidad}</span>
+                    <Stepper
+                      size="sm"
+                      valor={item.cantidad}
+                      onCambiar={(v) => ajustarCantidadCarrito(item.id, v)}
+                      onBlur={(v) => ajustarCantidadCarrito(item.id, v)}
+                      max={Number(item.stockTotal ?? item.stockDisponible ?? 999)}
+                    />
                     <button
                       onClick={() => quitarDelCarrito(item.id)}
                       style={S.removeBtn}
@@ -667,7 +739,6 @@ const CatalogoPublico = () => {
               )}
             </div>
 
-            {/* Total */}
             {carrito.length > 0 && (
               <>
                 <div style={{ borderTop: '0.5px solid #f1f5f9', margin: '0' }}></div>
@@ -678,7 +749,6 @@ const CatalogoPublico = () => {
               </>
             )}
 
-            {/* Botón confirmar */}
             <button
               onClick={irAConfirmar}
               disabled={carrito.length === 0}

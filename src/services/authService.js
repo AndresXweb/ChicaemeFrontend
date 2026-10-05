@@ -1,5 +1,7 @@
 // src/services/authService.js
-const API_URL = 'http://localhost:8080/api/usuarios';
+import { API_BASE_URL } from '../config';
+
+const API_URL = `${API_BASE_URL}/api/usuarios`;
 
 const TOKEN_KEY = 'chicaeme_token';
 const USUARIO_KEY = 'usuarioChicaeme'; // se mantiene el mismo nombre que ya usa el resto del proyecto

@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:8080/api/archivos';
+import { API_BASE_URL } from '../config';
+
+const API_URL = `${API_BASE_URL}/api/archivos`;
 
 // Sube un archivo de imagen y devuelve la URL pública donde quedó guardado.
 export const subirImagen = async (archivo) => {

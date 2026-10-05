@@ -1,5 +1,7 @@
 import { authFetch } from './http';
-const API_URL = 'http://localhost:8080/api/usuarios';
+import { API_BASE_URL } from '../config';
+
+const API_URL = `${API_BASE_URL}/api/usuarios`;
 
 export const obtenerUsuarios = async () => {
     const response = await authFetch(API_URL);
